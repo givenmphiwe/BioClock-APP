@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">DTTS</string>
+    <string name="open_device">open device</string>
+    <string name="close_device">close device</string>
+    <string name="capture_save_finger">capture device</string>
+    <string name="compare_finger">compare finger</string>
+</resources>
