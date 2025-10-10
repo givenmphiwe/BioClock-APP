@@ -10,8 +10,9 @@ android {
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
-        buildConfigField "String", "API_URL", "\"http://192.168.1.153/DMS_API/public/api\""
-        buildConfigField "String", "BASE_URL", "\"http://192.168.1.153/DMS_API/public\""
+//        buildConfigField "String", "API_URL", "\"http://192.168.8.100:7294\""
+        buildConfigField "String", "API_URL", "\"http://192.168.8.100:5099\""
+        buildConfigField "String", "BASE_URL", "\"http://192.168.8.100:5099\""
         buildConfigField "String", "TOKEN_KEY", "\"dtts_token\""
         buildConfigField "boolean", "OFFLINE_ENABLED", "true"
         buildConfigField "boolean", "FORCE_OFFLINE", "false"
@@ -42,4 +43,9 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+
+    // (optional) HTTP logging—handy in debug
+    debugImplementation 'com.squareup.okhttp3:logging-interceptor:3.12.12'
+
+    implementation 'com.android.support:recyclerview-v7:28.0.0'
 }

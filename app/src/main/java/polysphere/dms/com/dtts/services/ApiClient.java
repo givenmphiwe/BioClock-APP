@@ -1,43 +1,50 @@
 package polysphere.dms.com.dtts.services;
 
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import polysphere.dms.com.dtts.Environments.Env;
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import okhttp3.*;
 
-public class ApiClient {
-    private static final OkHttpClient client = new OkHttpClient();
-    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+public final class ApiClient {
+    private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
-    public static String post(String path, String jsonBody, String token) throws Exception {
-        String url = Env.apiUrl();
-        if (!url.endsWith("/")) url += "/";
-        url += path;
+    // OkHttp 3.12 (Android 4.1+) — works with Gradle 4.6
+    private static final OkHttpClient client = new OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(20, TimeUnit.SECONDS)
+            .writeTimeout(20, TimeUnit.SECONDS)
+            .build();
 
-        Request.Builder builder = new Request.Builder()
-                .url(url)
-                .post(RequestBody.create(JSON, jsonBody));
-
-        if (token != null) {
-            builder.addHeader("Authorization", "Bearer " + token);
-        }
-
-        Response response = client.newCall(builder.build()).execute();
-
-        // ✅ Read the response body once and reuse it
-        String body = response.body() != null ? response.body().string() : "";
-
-        if (!response.isSuccessful()) {
-            String msg = "HTTP " + response.code() + ": " + response.message() + " Body: " + body;
-            response.close(); // still good practice
-            throw new Exception(msg);
-        }
-
-        response.close();
-        return body;
+    public static String baseUrl() {
+        return polysphere.dms.com.dtts.BuildConfig.BASE_URL;
     }
 
+    public static String post(String path, String json, Map<String, String> headers) throws IOException {
+        // ensure exactly one slash between base and path
+        String base = baseUrl();
+        if (base.endsWith("/") && path.startsWith("/")) path = path.substring(1);
+        else if (!base.endsWith("/") && !path.startsWith("/")) path = "/" + path;
+
+        RequestBody body = RequestBody.create(JSON, json);
+        Request.Builder b = new Request.Builder()
+                .url(base + path)
+                .post(body)
+                .header("Accept", "application/json")
+                .header("Content-Type", "application/json; charset=utf-8");
+
+        if (headers != null) {
+            for (Map.Entry<String, String> e : headers.entrySet()) {
+                b.header(e.getKey(), e.getValue());
+            }
+        }
+
+        Response r = client.newCall(b.build()).execute();
+        String resp = r.body() != null ? r.body().string() : "";
+        if (!r.isSuccessful()) {
+            // propagate server error so caller can show it
+            throw new IOException("HTTP " + r.code() + " " + r.message() + " • " + resp);
+        }
+        return resp;
+    }
 }

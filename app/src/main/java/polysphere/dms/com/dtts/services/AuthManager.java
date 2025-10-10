@@ -2,16 +2,21 @@ package polysphere.dms.com.dtts.services;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import org.json.JSONObject;
 
-import polysphere.dms.com.dtts.Environments.Env;
+import java.util.HashMap;
+import java.util.Map;
 
+import polysphere.dms.com.dtts.Environments.Env;
 
 public class AuthManager {
     private static final String PREFS = "app_prefs";
     private final Context ctx;
+    private final Handler main = new Handler(Looper.getMainLooper());
 
     public AuthManager(Context ctx) {
         this.ctx = ctx.getApplicationContext();
@@ -36,37 +41,58 @@ public class AuthManager {
         prefs.edit().clear().apply();
     }
 
-    public void login(String industryNumber, String password, boolean biometric, final Callback callback) {
-        final String indNum = industryNumber;
-        final String pwd = password;
-        final boolean bio = biometric;
-
+    public void login(final String userNameOrEmail, final String password, final boolean biometric, final Callback callback) {
         new Thread(new Runnable() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 try {
                     JSONObject payload = new JSONObject();
-                    payload.put("industry_number", indNum);
-                    payload.put("password", pwd);
-                    payload.put("type", bio ? "biometric_auth" : "password_auth");
-                    payload.put("grant_type", "client_credentials");
+                    payload.put("userNameOrEmail", userNameOrEmail);
+                    payload.put("password", password);
+                    // If your API expects this:
+                    // payload.put("biometric", biometric);
 
+                    Map<String, String> headers = new HashMap<String, String>();
+                    headers.put("Accept", "application/json");
+                    headers.put("Content-Type", "application/json; charset=utf-8");
 
-                    String resp = ApiClient.post("login", payload.toString(), null);
-                    JSONObject obj = new JSONObject(resp);
-                    String token = obj.optString("access_token");
-                    if (token == null || token.isEmpty()) {
-                        callback.onError("No token in response");
+                    final String path = "/api/Auth/login"; // match server casing exactly
+                    Log.d("AuthManager", "POST " + ApiClient.baseUrl() + path + " body=" + payload.toString());
+
+                    String resp = ApiClient.post(path, payload.toString(), headers);
+                    if (resp == null || resp.length() == 0) {
+                        postError(callback, "Empty response");
                         return;
                     }
+
+                    JSONObject obj = new JSONObject(resp);
+
+                    // Try multiple token key styles
+                    String token = obj.optString("access_token", "");
+                    if (token.length() == 0) token = obj.optString("accessToken", "");
+                    if (token.length() == 0) token = obj.optString("token", "");
+
+                    if (token.length() == 0) {
+                        Log.w("AuthManager", "No token in response: " + resp);
+                        postError(callback, "No token in response");
+                        return;
+                    }
+
                     saveToken(token);
-                    callback.onSuccess(obj);
+                    postSuccess(callback, obj);
+
                 } catch (Exception e) {
                     Log.e("AuthManager", "login error", e);
-                    callback.onError(e.getMessage());
+                    postError(callback, e.getMessage());
                 }
             }
         }).start();
+    }
+
+    private void postSuccess(final Callback cb, final JSONObject obj) {
+        main.post(new Runnable() { @Override public void run() { cb.onSuccess(obj); } });
+    }
+    private void postError(final Callback cb, final String msg) {
+        main.post(new Runnable() { @Override public void run() { cb.onError(msg); } });
     }
 
     public interface Callback {
