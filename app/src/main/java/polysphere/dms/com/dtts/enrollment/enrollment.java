@@ -26,7 +26,7 @@ public class enrollment extends AppCompatActivity {
         setContentView(R.layout.activity_enrollment);
 
         // Header wiring
-        TextView tvHeaderTitle = findViewById(R.id.tvHeaderTitle);
+        TextView tvHeaderTitle = findViewById(R.id.tv_info);
         ImageView ivHome = findViewById(R.id.ivBack);
 
         // Skip button

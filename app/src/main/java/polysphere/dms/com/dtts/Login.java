@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,14 +30,13 @@ import polysphere.dms.com.dtts.sync.sync;
 
 public class Login extends AppCompatActivity {
     private static final int REQUEST_PERMISSIONS = 1001;
-    private static final int MATCH_THRESHOLD = 60;
 
     private AuthManager authManager;
 
     private FingerprintE fingerprintE;
     private TextView tv_info;
-    private Button btnFingerprint;
-    private Button btnCompare;
+//    private Button btnFingerprint;
+    private ImageButton btnFingerprint;
     private Button btnLogin;
     private EditText etPassword;
     private EditText etIndustry;
@@ -53,7 +53,6 @@ public class Login extends AppCompatActivity {
 
         tv_info = findViewById(R.id.tv_info);
         btnFingerprint = findViewById(R.id.btn_fingerprint);
-        btnCompare = findViewById(R.id.btn_compare);
         btnLogin = findViewById(R.id.btn_login);
         etPassword = findViewById(R.id.et_password);
         etIndustry = findViewById(R.id.et_industry);
@@ -136,7 +135,7 @@ public class Login extends AppCompatActivity {
             }
         });
 
-        // fingerprint save flow
+        // fingerprint save (enroll) flow
         btnFingerprint.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -146,21 +145,6 @@ public class Login extends AppCompatActivity {
                     @Override
                     public void run() {
                         performFingerprintSave();
-                    }
-                });
-            }
-        });
-
-        // fingerprint compare flow
-        btnCompare.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (isDoing) return;
-
-                ensureDeviceOpenThen(new Runnable() {
-                    @Override
-                    public void run() {
-                        performFingerprintCompareOnly();
                     }
                 });
             }
@@ -177,89 +161,6 @@ public class Login extends AppCompatActivity {
         } else {
             openDeviceAsync();
         }
-    }
-
-    private void performFingerprintCompareOnly() {
-        if (isDoing) return;
-        isDoing = true;
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    // clear status
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            tv_info.setText("");
-                        }
-                    });
-
-                    // capture
-                    FingerprintE.FingerImage fingerImage = fingerprintE.getFingerImage();
-                    if (fingerImage == null) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                tv_info.setText("Capture failed");
-                            }
-                        });
-                        return;
-                    }
-
-                    // template
-                    byte[] template = fingerprintE.createFingerTemplate(fingerImage.image);
-                    if (template == null) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                tv_info.setText("Template creation failed");
-                            }
-                        });
-                        return;
-                    }
-
-                    File dir = new File(Environment.getExternalStorageDirectory(), "FingerModelE");
-                    if (!dir.exists() || dir.listFiles() == null || dir.listFiles().length == 0) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                tv_info.setText("No fingerprint enrolled");
-                            }
-                        });
-                        return;
-                    }
-
-                    File[] list = dir.listFiles();
-                    boolean matched = false;
-                    for (File f : list) {
-                        byte[] feature = FileOperate.getData(f);
-                        final int score = fingerprintE.compareTemplates(template, feature);
-                        Log.d("Login", "compare score --> " + score);
-                        if (score > MATCH_THRESHOLD) {
-                            matched = true;
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    tv_info.setText("Compare success: " + score);
-                                }
-                            });
-                            break;
-                        }
-                    }
-                    if (!matched) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                tv_info.setText("No match found");
-                            }
-                        });
-                    }
-                } finally {
-                    isDoing = false;
-                }
-            }
-        }).start();
     }
 
     private void ensureDeviceOpenThen(final Runnable then) {

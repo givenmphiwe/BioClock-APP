@@ -53,7 +53,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
-        <!-- Password input with eye drawable -->
+        <!-- Password input with eye drawable (unchanged) -->
         <EditText
             android:id="@+id/et_password"
             android:layout_width="0dp"
@@ -71,11 +71,11 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
-        <!-- Log In button -->
+        <!-- LOG IN (left) -->
         <Button
             android:id="@+id/btn_login"
             android:layout_width="0dp"
-            android:layout_height="36dp"
+            android:layout_height="48dp"
             android:text="LOG IN"
             android:textAllCaps="true"
             android:textSize="14sp"
@@ -90,67 +90,37 @@
             app:layout_constraintTop_toBottomOf="@id/et_password"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/btn_fingerprint"
-            app:layout_constraintWidth_percent="0.5"/>
+            app:layout_constraintHorizontal_chainStyle="packed" />
 
-        <!-- Fingerprint capture button -->
-        <Button
+        <!-- Fingerprint (right) – circular icon button -->
+        <ImageButton
             android:id="@+id/btn_fingerprint"
-            android:layout_width="0dp"
-            android:layout_height="36dp"
-            android:layout_marginStart="8dp"
-            android:text="TAP TO CAPTURE FINGER"
-            android:textAllCaps="false"
-            android:textSize="14sp"
-            android:background="@drawable/btn_fingerprint_bg"
-            android:textColor="@android:color/black"
-            android:fontFamily="sans-serif-medium"
-            android:ellipsize="end"
-            android:gravity="center"
-            android:maxLines="1"
-            android:paddingLeft="12dp"
-            android:paddingRight="12dp"
-            android:elevation="4dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="12dp"
+            android:contentDescription="Capture fingerprint"
+            android:background="@drawable/bg_icon_button"
+            android:src="@drawable/fingerprint"
+            android:scaleType="centerInside"
+            android:tint="@android:color/black"
             app:layout_constraintTop_toTopOf="@id/btn_login"
             app:layout_constraintBottom_toBottomOf="@id/btn_login"
             app:layout_constraintStart_toEndOf="@id/btn_login"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintWidth_percent="0.5"/>
-
-        <Button
-            android:id="@+id/btn_compare"
-            android:layout_width="0dp"
-            android:layout_height="36dp"
-            android:text="COMPARE"
-            android:textAllCaps="true"
-            android:textSize="14sp"
-            android:background="@drawable/btn_fingerprint_bg"
-            android:textColor="@android:color/black"
-            android:fontFamily="sans-serif-medium"
-            android:ellipsize="end"
-            android:gravity="center"
-            android:maxLines="1"
-            android:paddingLeft="12dp"
-            android:paddingRight="12dp"
-            android:elevation="4dp"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toBottomOf="@id/btn_fingerprint"
-            app:layout_constraintStart_toStartOf="@id/btn_fingerprint"
-            app:layout_constraintEnd_toEndOf="@id/btn_fingerprint"/>
-
+            app:layout_constraintEnd_toEndOf="parent" />
 
         <!-- Info / status text -->
         <TextView
             android:id="@+id/tv_info"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="52dp"
             android:text=""
-            android:textColor="#444444"
             android:textSize="14sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
+            android:textColor="#444444"
+            android:layout_marginTop="20dp"
+            app:layout_constraintTop_toBottomOf="@id/btn_fingerprint"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/btn_login" />
+            app:layout_constraintEnd_toEndOf="parent" />
+
 
     </android.support.constraint.ConstraintLayout>
 </ScrollView>
